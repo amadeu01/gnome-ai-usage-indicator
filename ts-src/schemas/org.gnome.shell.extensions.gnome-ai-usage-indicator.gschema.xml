@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.gnome-ai-usage-indicator"
+          path="/org/gnome/shell/extensions/gnome-ai-usage-indicator/">
+
+    <key name="enabled-providers" type="as">
+      <default>['claude-code']</default>
+      <summary>Enabled providers</summary>
+      <description>List of provider IDs that are enabled for polling and display</description>
+    </key>
+
+    <key name="poll-interval" type="i">
+      <default>60</default>
+      <range min="10" max="3600"/>
+      <summary>Poll interval in seconds</summary>
+      <description>How often to fetch usage data from providers (10–3600 seconds)</description>
+    </key>
+
+    <key name="anthropic-api-key" type="s">
+      <default>''</default>
+      <summary>Anthropic API key</summary>
+      <description>Optional API key for fetching usage from the Anthropic Admin API</description>
+    </key>
+
+  </schema>
+</schemalist>
