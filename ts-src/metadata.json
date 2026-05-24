@@ -1,0 +1,9 @@
+{
+  "name": "GNOME AI Usage Indicator",
+  "description": "Monitor AI coding provider usage (Claude Code, Codex, Anthropic API) from the GNOME top panel",
+  "uuid": "gnome-ai-usage-indicator@amadeu01.github.io",
+  "version": 1,
+  "shell-version": ["45", "46", "47", "48", "49", "50"],
+  "settings-schema": "org.gnome.shell.extensions.gnome-ai-usage-indicator",
+  "url": "https://github.com/amadeu01/gnome-ai-usage-indicator"
+}
