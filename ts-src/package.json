@@ -1,0 +1,15 @@
+{
+  "name": "gnome-ai-usage-indicator",
+  "version": "1.0.0",
+  "description": "GNOME Shell extension for AI usage monitoring",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}
