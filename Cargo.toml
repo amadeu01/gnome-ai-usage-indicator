@@ -1,0 +1,19 @@
+[package]
+name = "ai-usage-indicator"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+gtk4 = { version = "0.9", features = ["v4_12"] }
+gdk4-x11 = { version = "0.9", features = ["xlib"] }
+x11 = { version = "2", features = ["xlib"] }
+libadwaita = { version = "0.7", features = ["v1_4"] }
+ksni = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.12", features = ["json"] }
+toml = "0.8"
+chrono = { version = "0.4", features = ["serde"] }
+anyhow = "1"
+async-channel = "2"
