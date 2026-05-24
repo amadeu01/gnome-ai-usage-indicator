@@ -20,7 +20,7 @@ export default class AiUsagePreferences extends ExtensionPreferences {
     const providers = [
       { id: PROVIDER_IDS.CLAUDE_CODE, label: 'Claude Code', subtitle: 'Reads ~/.claude/statusline-usage-cache.json' },
       { id: PROVIDER_IDS.CODEX, label: 'Codex CLI', subtitle: 'Reads ~/.codex/ usage files' },
-      { id: PROVIDER_IDS.ANTHROPIC_API, label: 'Anthropic API', subtitle: 'Fetches from api.anthropic.com (requires API key)' },
+      { id: PROVIDER_IDS.ANTHROPIC_API, label: 'Anthropic API', subtitle: 'Fetches from api.anthropic.com' },
     ];
 
     for (const provider of providers) {
@@ -44,26 +44,24 @@ export default class AiUsagePreferences extends ExtensionPreferences {
       providersGroup.add(row);
     }
 
-    // ── API Keys group ───────────────────────────────────────────────────
-    const apiGroup = new Adw.PreferencesGroup({ title: 'API Keys' });
-    page.add(apiGroup);
+    // ── Configuration group ──────────────────────────────────────────────
+    const configGroup = new Adw.PreferencesGroup({ title: 'Configuration' });
+    page.add(configGroup);
 
-    // Security warning banner
-    const banner = new Adw.Banner({
-      title: 'API keys are stored in dconf and are not encrypted. Use read-only keys with minimal permissions.',
-      revealed: true,
+    const configRow = new Adw.ActionRow({
+      title: 'Daemon Config File',
+      subtitle: '~/.config/ai-usage-indicator/config.toml',
+      activatable: false,
     });
-    apiGroup.add(banner);
+    configRow.add_suffix(new Gtk.Image({ icon_name: 'document-edit-symbolic' }));
+    configGroup.add(configRow);
 
-    // Anthropic API key
-    const apiKeyRow = new Adw.PasswordEntryRow({
-      title: 'Anthropic API Key',
+    const apiKeyNote = new Adw.ActionRow({
+      title: 'API Keys',
+      subtitle: 'Set anthropic_api_key in the config file above. Keys are never stored in dconf.',
+      activatable: false,
     });
-    apiKeyRow.text = settings.get_string('anthropic-api-key');
-    apiKeyRow.connect('changed', () => {
-      settings.set_string('anthropic-api-key', apiKeyRow.text);
-    });
-    apiGroup.add(apiKeyRow);
+    configGroup.add(apiKeyNote);
 
     // ── Advanced group ───────────────────────────────────────────────────
     const advancedGroup = new Adw.PreferencesGroup({ title: 'Advanced' });

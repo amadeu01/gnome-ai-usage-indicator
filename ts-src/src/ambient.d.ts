@@ -60,6 +60,43 @@ declare module 'gi://Gio' {
     namespace FileMonitorFlags {
       const NONE: number;
     }
+    class DBusNodeInfo {
+      static new_for_xml(xml: string): DBusNodeInfo;
+      interfaces: DBusInterfaceInfo[];
+    }
+    class DBusInterfaceInfo {}
+    enum DBusProxyFlags {
+      NONE = 0,
+      DO_NOT_AUTO_START = 4,
+    }
+    enum DBusCallFlags {
+      NONE = 0,
+    }
+    class DBusProxy {
+      constructor(params: any);
+      init(cancellable: any): void;
+      connect(signal: string, callback: (...args: any[]) => any): number;
+      disconnect(id: number): void;
+      call(
+        methodName: string,
+        parameters: any,
+        flags: DBusCallFlags,
+        timeoutMsec: number,
+        cancellable: any,
+        callback: (proxy: DBusProxy, result: AsyncResult) => void
+      ): void;
+      call_finish(result: AsyncResult): GLib.Variant;
+    }
+    class AsyncResult {}
+    namespace GLib {
+      class Variant {
+        get_child_value(index: number): Variant;
+        get_string(): [string, number];
+      }
+    }
+    const DBus: {
+      session: any;
+    };
   }
   export default Gio;
 }
@@ -231,6 +268,8 @@ declare module 'gi://Adw' {
       constructor(params?: any);
       title: string;
       subtitle: string;
+      activatable: boolean;
+      add_suffix(widget: any): void;
     }
   }
   export default Adw;
@@ -244,6 +283,10 @@ declare module 'gi://Gtk' {
       lower: number;
       upper: number;
       step_increment: number;
+    }
+    class Image {
+      constructor(params?: any);
+      icon_name: string;
     }
   }
   export default Gtk;

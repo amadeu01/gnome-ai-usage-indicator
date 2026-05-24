@@ -1,3 +1,8 @@
+export interface PaceInfo {
+  label: string;
+  ahead: boolean;
+}
+
 export interface ProviderData {
   id: string;
   name: string;
@@ -7,6 +12,8 @@ export interface ProviderData {
   limitCredits: number | null;
   resetAt: Date | null;
   error: string | null;
+  windowLabel: string | null;
+  paceInfo: PaceInfo | null;
 }
 
 export const PROVIDER_IDS = {

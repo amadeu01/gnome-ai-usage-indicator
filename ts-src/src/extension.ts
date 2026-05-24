@@ -4,6 +4,8 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { ProviderManager } from './providerManager.js';
 import { PanelIndicator } from './panelIndicator.js';
 
+const DEFAULT_POLL_INTERVAL = 60;
+
 export default class AiUsageExtension extends Extension {
   private _indicator: any = null;
   private _manager: any = null;
@@ -14,7 +16,7 @@ export default class AiUsageExtension extends Extension {
 
   override enable(): void {
     this._settings = this.getSettings();
-    this._manager = new (ProviderManager as any)(this._settings);
+    this._manager = new (ProviderManager as any)();
     this._indicator = new (PanelIndicator as any)(this._manager, this.path);
 
     Main.panel.addToStatusArea(this.uuid, this._indicator);
@@ -55,13 +57,17 @@ export default class AiUsageExtension extends Extension {
       this._indicator = null;
     }
 
-    this._manager = null;
+    if (this._manager) {
+      this._manager.destroy();
+      this._manager = null;
+    }
+
     this._settings = null;
   }
 
   private _startPolling(): void {
     this._stopPolling();
-    const interval = this._settings.get_int('poll-interval');
+    const interval = this._settings?.get_int('poll-interval') ?? DEFAULT_POLL_INTERVAL;
     this._pollTimer = GLib.timeout_add_seconds(GLib.PRIORITY_LOW, interval, () => {
       if (!Main.screenShield?.active) {
         this._manager?.fetchAll().catch(() => {});
