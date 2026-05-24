@@ -1,0 +1,123 @@
+/* AI Usage Indicator Extension Styles */
+
+/* Panel icon tint states */
+.ai-usage-icon-warning {
+  color: #e6a817;
+}
+
+.ai-usage-icon-critical {
+  color: #e74c3c;
+}
+
+/* Popover container */
+.ai-usage-header {
+  padding: 8px 12px 4px 12px;
+  spacing: 8px;
+}
+
+.ai-usage-title {
+  font-weight: bold;
+  font-size: 1em;
+}
+
+.ai-usage-refresh-btn {
+  border-radius: 4px;
+  padding: 4px;
+}
+
+.ai-usage-refresh-btn-busy {
+  opacity: 0.5;
+}
+
+/* Provider tile */
+.ai-usage-tiles {
+  padding: 0 8px 4px 8px;
+  spacing: 8px;
+  min-width: 280px;
+}
+
+.ai-usage-tile {
+  padding: 8px;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.06);
+  spacing: 4px;
+}
+
+.ai-usage-tile-header {
+  spacing: 8px;
+}
+
+.ai-usage-provider-name {
+  font-weight: bold;
+  font-size: 0.9em;
+}
+
+.ai-usage-pct-label {
+  font-size: 0.85em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.ai-usage-error {
+  font-size: 0.8em;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+/* Progress bar */
+.ai-usage-bar-track {
+  height: 6px;
+  border-radius: 3px;
+  background-color: rgba(255, 255, 255, 0.15);
+  x-expand: true;
+}
+
+.ai-usage-bar-fill {
+  height: 6px;
+  border-radius: 3px;
+  min-width: 2px;
+}
+
+.ai-usage-bar-ok {
+  background-color: #27ae60;
+}
+
+.ai-usage-bar-warning {
+  background-color: #e6a817;
+}
+
+.ai-usage-bar-critical {
+  background-color: #e74c3c;
+}
+
+/* Tile footer */
+.ai-usage-tile-footer {
+  spacing: 8px;
+}
+
+.ai-usage-usage-text {
+  font-size: 0.78em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.ai-usage-reset-label {
+  font-size: 0.78em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Empty state */
+.ai-usage-empty {
+  padding: 12px;
+  font-size: 0.85em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Footer timestamp */
+.ai-usage-footer {
+  padding: 4px 12px 8px 12px;
+  font-size: 0.75em;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.ai-usage-footer-stale {
+  color: #e6a817;
+}
