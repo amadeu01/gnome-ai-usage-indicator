@@ -16,11 +16,5 @@
       <description>How often to fetch usage data from providers (10–3600 seconds)</description>
     </key>
 
-    <key name="anthropic-api-key" type="s">
-      <default>''</default>
-      <summary>Anthropic API key</summary>
-      <description>Optional API key for fetching usage from the Anthropic Admin API</description>
-    </key>
-
   </schema>
 </schemalist>

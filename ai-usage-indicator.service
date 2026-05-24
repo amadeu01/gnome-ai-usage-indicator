@@ -1,7 +1,7 @@
 [Unit]
-Description=AI Usage Indicator tray application
-After=graphical-session.target
-PartOf=graphical-session.target
+Description=AI Usage Indicator DBus daemon
+After=dbus.socket
+Requires=dbus.socket
 
 [Service]
 Type=simple
@@ -10,4 +10,4 @@ Restart=on-failure
 RestartSec=5
 
 [Install]
-WantedBy=graphical-session.target
+WantedBy=default.target
