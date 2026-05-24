@@ -1,0 +1,112 @@
+# AI First Citizen - AI generated/managed files
+# Keep AI context files but ignore transient AI artifacts
+*.ai-context
+*.ai-draft
+.ai-cache/
+.ai-temp/
+
+# Rust / Cargo
+/target/
+**/target/
+Cargo.lock
+**/Cargo.lock
+*.rs.bk
+*.pdb
+
+# GNOME / GTK
+*.gresource
+*.gresource.xml
+*.mo
+*.pot
+*.gsettings.merged
+.glib-compile-schemas
+schemas/*.compiled
+schemas/gschemas.compiled
+
+# Build artifacts
+*.o
+*.a
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.out
+*.app
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# GNOME Shell Extension specific
+*.pot.new
+*.gresource
+schemas/gschemas.compiled
+
+# Logs and debugging
+*.log
+logs/
+crash-reports/
+
+# OS specific
+.DS_Store
+Thumbs.db
+*.desktop.new
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Test artifacts
+*.gcda
+*.gcno
+*.gcov
+coverage/
+
+# Documentation build
+docs/_build/
+
+# Package build
+dist/
+build/
+
+# Local configuration (keep example configs)
+*.local
+*.local.json
+*.local.toml
+config.local.*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Credentials and secrets
+*.key
+*.pem
+*.crt
+secrets/
+credentials.*
+
+# Node.js (for ts-src)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Make artifacts
+*.orig
+*.rej
