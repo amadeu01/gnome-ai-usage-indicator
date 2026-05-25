@@ -38,12 +38,12 @@ impl Default for Config {
 }
 
 fn config_path() -> PathBuf {
-    let mut p = dirs_home();
+    let mut p = home_dir();
     p.push(".config/ai-usage-indicator/config.toml");
     p
 }
 
-fn dirs_home() -> PathBuf {
+pub fn home_dir() -> PathBuf {
     std::env::var("HOME")
         .map(PathBuf::from)
         .unwrap_or_else(|_| PathBuf::from("/tmp"))

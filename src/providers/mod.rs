@@ -31,6 +31,34 @@ pub struct ProviderData {
     pub cost_usd: Option<f64>,
 }
 
+impl Default for ProviderData {
+    fn default() -> Self {
+        Self {
+            id: String::new(),
+            name: String::new(),
+            window_label: None,
+            utilization: 0.0,
+            reset_at: None,
+            pace_info: None,
+            used_credits: None,
+            limit_credits: None,
+            meta: None,
+            error: None,
+            tokens_used: None,
+            cost_usd: None,
+        }
+    }
+}
+
+pub fn error_entry(id: &str, name: &str, msg: &str) -> ProviderData {
+    ProviderData {
+        id: id.to_string(),
+        name: name.to_string(),
+        error: Some(msg.to_string()),
+        ..Default::default()
+    }
+}
+
 pub async fn fetch_all(config: &Config) -> Vec<ProviderData> {
     let fetch_claude = config.enabled_providers.contains(&"claude-code".to_string());
     let fetch_ollama = config.enabled_providers.contains(&"ollama".to_string());
