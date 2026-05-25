@@ -111,6 +111,7 @@ export const UsagePopover = GObject.registerClass(
     private _footerLabel: St.Label | null = null;
     private _footerTimer: number = 0;
     private _managerId: number = 0;
+    private _tilesBox: St.BoxLayout | null = null;
 
     constructor(section: any, manager: ProviderManagerType) {
       super();
@@ -155,13 +156,13 @@ export const UsagePopover = GObject.registerClass(
       if (root) root.add_child(header);
 
       // Tiles container
-      const tilesBox = new St.BoxLayout({
+      this._tilesBox = new St.BoxLayout({
         style_class: 'ai-usage-tiles',
         vertical: true,
         x_expand: true,
       });
-      tilesBox.set_name('tiles-box');
-      if (root) root.add_child(tilesBox);
+      this._tilesBox.set_name('tiles-box');
+      if (root) root.add_child(this._tilesBox);
 
       // Footer
       this._footerLabel = new St.Label({
@@ -187,10 +188,7 @@ export const UsagePopover = GObject.registerClass(
     }
 
     private _refresh(): void {
-      const root = this._section.box ?? this._section.actor;
-      if (!root) return;
-
-      const tilesBox = this._findTilesBox(root);
+      const tilesBox = this._tilesBox;
       if (!tilesBox) return;
 
       tilesBox.destroy_all_children();
@@ -210,15 +208,6 @@ export const UsagePopover = GObject.registerClass(
       }
 
       this._updateFooter();
-    }
-
-    private _findTilesBox(root: St.Widget): St.BoxLayout | null {
-      const n = root.get_n_children();
-      for (let i = 0; i < n; i++) {
-        const child = root.get_children()[i];
-        if ((child as any).get_name?.() === 'tiles-box') return child as St.BoxLayout;
-      }
-      return null;
     }
 
     private _updateFooter(): void {
@@ -241,6 +230,7 @@ export const UsagePopover = GObject.registerClass(
         this._manager.disconnect(this._managerId);
         this._managerId = 0;
       }
+      this._tilesBox = null;
     }
   }
 );

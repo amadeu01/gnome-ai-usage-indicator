@@ -178,49 +178,6 @@ declare module 'gi://St' {
   export default St;
 }
 
-declare module 'gi://Clutter' {
-  namespace Clutter {
-    class Color {
-      static new(r: number, g: number, b: number, a: number): Color;
-    }
-    namespace ActorAlign {
-      const START: number;
-      const CENTER: number;
-      const END: number;
-      const FILL: number;
-    }
-    namespace Orientation {
-      const HORIZONTAL: number;
-      const VERTICAL: number;
-    }
-  }
-  export default Clutter;
-}
-
-declare module 'gi://Soup' {
-  namespace Soup {
-    class Session {
-      constructor(params?: any);
-      send_message(message: Message): number;
-      send_and_read_async(
-        message: Message,
-        priority: number,
-        cancellable: any,
-        callback: (session: Session, result: any) => void
-      ): void;
-      send_and_read_finish(result: any): any;
-    }
-    class Message {
-      static new(method: string, uri: string): Message;
-      request_headers: MessageHeaders;
-      status_code: number;
-    }
-    class MessageHeaders {
-      append(name: string, value: string): void;
-    }
-  }
-  export default Soup;
-}
 
 declare module 'gi://Adw' {
   namespace Adw {

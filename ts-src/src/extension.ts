@@ -30,7 +30,7 @@ export default class AiUsageExtension extends Extension {
     }
 
     this._settingsId = this._settings.connect('changed::poll-interval', () =>
-      this._restartPolling()
+      this._startPolling()
     );
 
     // Initial fetch
@@ -79,10 +79,6 @@ export default class AiUsageExtension extends Extension {
       GLib.source_remove(this._pollTimer);
       this._pollTimer = 0;
     }
-  }
-
-  private _restartPolling(): void {
-    this._startPolling();
   }
 
   private _onScreenShieldChanged(): void {

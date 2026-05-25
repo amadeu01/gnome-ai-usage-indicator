@@ -21,5 +21,3 @@ export const PROVIDER_IDS = {
   CODEX: 'codex',
   ANTHROPIC_API: 'anthropic-api',
 } as const;
-
-export type ProviderId = (typeof PROVIDER_IDS)[keyof typeof PROVIDER_IDS];
