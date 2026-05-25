@@ -1,6 +1,7 @@
 use serde::Deserialize;
 use std::path::PathBuf;
 use super::ProviderData;
+use crate::config::home_dir;
 
 #[derive(Debug, Deserialize)]
 struct CodexUsage {
@@ -14,25 +15,11 @@ struct CodexUsage {
 }
 
 fn codex_dir() -> PathBuf {
-    let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
-    PathBuf::from(home).join(".codex")
+    home_dir().join(".codex")
 }
 
 fn error_entry(msg: &str) -> ProviderData {
-    ProviderData {
-        id: "codex".to_string(),
-        name: "Codex".to_string(),
-        window_label: None,
-        utilization: 0.0,
-        reset_at: None,
-        pace_info: None,
-        used_credits: None,
-        limit_credits: None,
-        meta: None,
-        error: Some(msg.to_string()),
-        tokens_used: None,
-        cost_usd: None,
-    }
+    super::error_entry("codex", "Codex", msg)
 }
 
 pub fn fetch_codex() -> ProviderData {
@@ -56,16 +43,11 @@ pub fn fetch_codex() -> ProviderData {
             return ProviderData {
                 id: "codex".to_string(),
                 name: "Codex".to_string(),
-                window_label: None,
                 utilization: pct as f32,
                 reset_at,
-                pace_info: None,
                 used_credits: data.credits_used,
                 limit_credits: data.credits_limit,
-                meta: None,
-                error: None,
-                tokens_used: None,
-                cost_usd: None,
+                ..Default::default()
             };
         }
 
@@ -80,16 +62,10 @@ pub fn fetch_codex() -> ProviderData {
             return ProviderData {
                 id: "codex".to_string(),
                 name: "Codex".to_string(),
-                window_label: None,
                 utilization,
                 reset_at,
-                pace_info: None,
-                used_credits: None,
-                limit_credits: None,
-                meta: None,
-                error: None,
                 tokens_used: Some(used),
-                cost_usd: None,
+                ..Default::default()
             };
         }
     }

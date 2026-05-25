@@ -14,20 +14,7 @@ struct ApiUsageResponse {
 
 pub async fn fetch_anthropic_api(api_key: &str) -> ProviderData {
     if api_key.is_empty() {
-        return ProviderData {
-            id: "anthropic-api".to_string(),
-            name: "Anthropic API".to_string(),
-            window_label: None,
-            utilization: 0.0,
-            reset_at: None,
-            pace_info: None,
-            used_credits: None,
-            limit_credits: None,
-            meta: None,
-            error: Some("No API key configured".to_string()),
-            tokens_used: None,
-            cost_usd: None,
-        };
+        return super::error_entry("anthropic-api", "Anthropic API", "No API key configured");
     }
 
     let client = reqwest::Client::new();
@@ -39,53 +26,14 @@ pub async fn fetch_anthropic_api(api_key: &str) -> ProviderData {
         .await;
 
     match result {
-        Err(e) => ProviderData {
-            id: "anthropic-api".to_string(),
-            name: "Anthropic API".to_string(),
-            window_label: None,
-            utilization: 0.0,
-            reset_at: None,
-            pace_info: None,
-            used_credits: None,
-            limit_credits: None,
-            meta: None,
-            error: Some(format!("Network error: {e}")),
-            tokens_used: None,
-            cost_usd: None,
-        },
+        Err(e) => super::error_entry("anthropic-api", "Anthropic API", &format!("Network error: {e}")),
         Ok(resp) => {
             let status = resp.status();
             if !status.is_success() {
-                return ProviderData {
-                    id: "anthropic-api".to_string(),
-                    name: "Anthropic API".to_string(),
-                    window_label: None,
-                    utilization: 0.0,
-                    reset_at: None,
-                    pace_info: None,
-                    used_credits: None,
-                    limit_credits: None,
-                    meta: None,
-                    error: Some(format!("API error ({})", status.as_u16())),
-                    tokens_used: None,
-                    cost_usd: None,
-                };
+                return super::error_entry("anthropic-api", "Anthropic API", &format!("API error ({})", status.as_u16()));
             }
             match resp.json::<ApiUsageResponse>().await {
-                Err(_) => ProviderData {
-                    id: "anthropic-api".to_string(),
-                    name: "Anthropic API".to_string(),
-                    window_label: None,
-                    utilization: 0.0,
-                    reset_at: None,
-                    pace_info: None,
-                    used_credits: None,
-                    limit_credits: None,
-                    meta: None,
-                    error: Some("Parse error".to_string()),
-                    tokens_used: None,
-                    cost_usd: None,
-                },
+                Err(_) => super::error_entry("anthropic-api", "Anthropic API", "Parse error"),
                 Ok(data) => {
                     let used = data.input_tokens.or(data.tokens_used).unwrap_or(0);
                     let limit = data.input_tokens_limit.or(data.tokens_limit).unwrap_or(0);
@@ -100,16 +48,12 @@ pub async fn fetch_anthropic_api(api_key: &str) -> ProviderData {
                     ProviderData {
                         id: "anthropic-api".to_string(),
                         name: "Anthropic API".to_string(),
-                        window_label: None,
                         utilization,
                         reset_at,
-                        pace_info: None,
                         used_credits: data.credits_used,
                         limit_credits: data.credits_limit,
-                        meta: None,
-                        error: None,
                         tokens_used: Some(used),
-                        cost_usd: None,
+                        ..Default::default()
                     }
                 }
             }

@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use std::path::PathBuf;
 use super::{PaceInfo, ProviderData};
+use crate::config::home_dir;
 
 #[derive(Debug, Deserialize)]
 struct UsageWindow {
@@ -32,27 +33,9 @@ struct UsageCache {
 }
 
 fn cache_path() -> PathBuf {
-    let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
-    let mut p = PathBuf::from(home);
+    let mut p = home_dir();
     p.push(".claude/statusline-usage-cache.json");
     p
-}
-
-fn error_entry(msg: &str) -> ProviderData {
-    ProviderData {
-        id: "claude-code".to_string(),
-        name: "Claude Code".to_string(),
-        window_label: None,
-        utilization: 0.0,
-        reset_at: None,
-        pace_info: None,
-        used_credits: None,
-        limit_credits: None,
-        meta: None,
-        error: Some(msg.to_string()),
-        tokens_used: None,
-        cost_usd: None,
-    }
 }
 
 fn compute_pace(utilization: f64, resets_at: &str) -> Option<PaceInfo> {
@@ -82,13 +65,13 @@ pub async fn fetch_claude_code() -> Vec<ProviderData> {
     let contents = match tokio::fs::read_to_string(&path).await {
         Ok(c) => c,
         Err(_) => {
-            return vec![error_entry("No data — is Claude Code installed?")];
+            return vec![super::error_entry("claude-code", "Claude Code", "No data — is Claude Code installed?")];
         }
     };
     let cache: UsageCache = match serde_json::from_str(&contents) {
         Ok(c) => c,
         Err(e) => {
-            return vec![error_entry(&format!("Parse error: {e}"))];
+            return vec![super::error_entry("claude-code", "Claude Code", &format!("Parse error: {e}"))];
         }
     };
 
@@ -109,13 +92,7 @@ pub async fn fetch_claude_code() -> Vec<ProviderData> {
             window_label: Some("Session".to_string()),
             utilization: util,
             reset_at,
-            pace_info: None,
-            used_credits: None,
-            limit_credits: None,
-            meta: None,
-            error: None,
-            tokens_used: None,
-            cost_usd: None,
+            ..Default::default()
         });
     }
 
@@ -132,12 +109,9 @@ pub async fn fetch_claude_code() -> Vec<ProviderData> {
             utilization: util as f32,
             reset_at,
             pace_info,
-            used_credits: None,
-            limit_credits: None,
-            meta: None,
-            error: None,
             tokens_used,
             cost_usd,
+            ..Default::default()
         });
     }
 
@@ -148,20 +122,15 @@ pub async fn fetch_claude_code() -> Vec<ProviderData> {
                 name: "Claude Code".to_string(),
                 window_label: Some("Extra usage".to_string()),
                 utilization: extra.utilization.unwrap_or(0.0) as f32,
-                reset_at: None,
-                pace_info: None,
                 used_credits: extra.used_credits,
                 limit_credits: extra.monthly_limit,
-                meta: None,
-                error: None,
-                tokens_used: None,
-                cost_usd: None,
+                ..Default::default()
             });
         }
     }
 
     if results.is_empty() {
-        results.push(error_entry("No usage windows found"));
+        results.push(super::error_entry("claude-code", "Claude Code", "No usage windows found"));
     }
 
     results
@@ -170,6 +139,7 @@ pub async fn fetch_claude_code() -> Vec<ProviderData> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::providers::error_entry;
 
     #[test]
     fn pace_ahead() {
@@ -193,7 +163,7 @@ mod tests {
 
     #[test]
     fn parse_error_entry_has_error_field() {
-        let e = error_entry("test error");
+        let e = error_entry("claude-code", "Claude Code", "test error");
         assert!(e.error.is_some());
         assert_eq!(e.error.unwrap(), "test error");
     }

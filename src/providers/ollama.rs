@@ -21,36 +21,10 @@ pub async fn fetch_ollama(host: &str) -> ProviderData {
         .unwrap_or_default();
 
     match client.get(&url).send().await {
-        Err(_) => ProviderData {
-            id: "ollama".to_string(),
-            name: "Ollama".to_string(),
-            window_label: None,
-            utilization: 0.0,
-            reset_at: None,
-            pace_info: None,
-            used_credits: None,
-            limit_credits: None,
-            meta: None,
-            error: Some("Not running".to_string()),
-            tokens_used: None,
-            cost_usd: None,
-        },
+        Err(_) => super::error_entry("ollama", "Ollama", "Not running"),
         Ok(resp) => {
             match resp.json::<OllamaPsResponse>().await {
-                Err(_) => ProviderData {
-                    id: "ollama".to_string(),
-                    name: "Ollama".to_string(),
-                    window_label: None,
-                    utilization: 0.0,
-                    reset_at: None,
-                    pace_info: None,
-                    used_credits: None,
-                    limit_credits: None,
-                    meta: None,
-                    error: Some("Invalid response".to_string()),
-                    tokens_used: None,
-                    cost_usd: None,
-                },
+                Err(_) => super::error_entry("ollama", "Ollama", "Invalid response"),
                 Ok(ps) => {
                     let meta = if ps.models.is_empty() {
                         Some("No models loaded".to_string())
@@ -68,16 +42,9 @@ pub async fn fetch_ollama(host: &str) -> ProviderData {
                     ProviderData {
                         id: "ollama".to_string(),
                         name: "Ollama".to_string(),
-                        window_label: None,
                         utilization: 0.0,
-                        reset_at: None,
-                        pace_info: None,
-                        used_credits: None,
-                        limit_credits: None,
                         meta,
-                        error: None,
-                        tokens_used: None,
-                        cost_usd: None,
+                        ..Default::default()
                     }
                 }
             }
