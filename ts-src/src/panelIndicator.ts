@@ -47,9 +47,7 @@ export const PanelIndicator = GObject.registerClass(
 
       const maxPct = data.reduce((max, d) => {
         if (d.error) return max;
-        const pct = d.limitTokens > 0
-          ? Math.round((d.usedTokens / d.limitTokens) * 100)
-          : 0;
+        const pct = d.limitTokens > 0 ? Math.round((d.usedTokens / d.limitTokens) * 100) : 0;
         return Math.max(max, pct);
       }, 0);
 

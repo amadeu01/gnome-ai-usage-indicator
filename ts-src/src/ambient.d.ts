@@ -27,7 +27,9 @@ declare module 'gi://GLib' {
 
 declare module 'gi://Gio' {
   namespace Gio {
-    interface Icon {}
+    interface Icon {
+      // GJS Gio.Icon interface
+    }
     function icon_new_for_string(str: string): Icon;
     class File {
       static new_for_path(path: string): File;
@@ -64,7 +66,9 @@ declare module 'gi://Gio' {
       static new_for_xml(xml: string): DBusNodeInfo;
       interfaces: DBusInterfaceInfo[];
     }
-    class DBusInterfaceInfo {}
+    class DBusInterfaceInfo {
+      // GJS DBus interface info
+    }
     enum DBusProxyFlags {
       NONE = 0,
       DO_NOT_AUTO_START = 4,
@@ -87,7 +91,9 @@ declare module 'gi://Gio' {
       ): void;
       call_finish(result: AsyncResult): GLib.Variant;
     }
-    class AsyncResult {}
+    class AsyncResult {
+      // GJS async result type
+    }
     namespace GLib {
       class Variant {
         get_child_value(index: number): Variant;

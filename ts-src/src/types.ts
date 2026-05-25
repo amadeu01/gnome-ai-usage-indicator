@@ -22,4 +22,4 @@ export const PROVIDER_IDS = {
   ANTHROPIC_API: 'anthropic-api',
 } as const;
 
-export type ProviderId = typeof PROVIDER_IDS[keyof typeof PROVIDER_IDS];
+export type ProviderId = (typeof PROVIDER_IDS)[keyof typeof PROVIDER_IDS];

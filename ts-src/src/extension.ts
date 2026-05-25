@@ -24,15 +24,13 @@ export default class AiUsageExtension extends Extension {
     this._startPolling();
 
     if (Main.screenShield) {
-      this._screenShieldId = Main.screenShield.connect(
-        'notify::active',
-        () => this._onScreenShieldChanged()
+      this._screenShieldId = Main.screenShield.connect('notify::active', () =>
+        this._onScreenShieldChanged()
       );
     }
 
-    this._settingsId = this._settings.connect(
-      'changed::poll-interval',
-      () => this._restartPolling()
+    this._settingsId = this._settings.connect('changed::poll-interval', () =>
+      this._restartPolling()
     );
 
     // Initial fetch

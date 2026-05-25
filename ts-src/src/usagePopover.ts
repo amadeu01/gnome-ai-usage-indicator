@@ -1,8 +1,6 @@
 import St from 'gi://St';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
-import Clutter from 'gi://Clutter';
-import { PopupMenuSection } from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import { ProviderData } from './types.js';
 import type { ProviderManagerType } from './providerManager.js';
 
@@ -50,9 +48,10 @@ function buildProviderTile(data: ProviderData): St.BoxLayout {
   });
   header.add_child(nameLabel);
 
-  const pct = data.limitTokens > 0
-    ? Math.min(100, Math.round((data.usedTokens / data.limitTokens) * 100))
-    : 0;
+  const pct =
+    data.limitTokens > 0
+      ? Math.min(100, Math.round((data.usedTokens / data.limitTokens) * 100))
+      : 0;
 
   const pctLabel = new St.Label({
     text: `${pct}%`,
@@ -81,9 +80,10 @@ function buildProviderTile(data: ProviderData): St.BoxLayout {
 
   const footer = new St.BoxLayout({ style_class: 'ai-usage-tile-footer' });
   const usageText = new St.Label({
-    text: data.limitTokens === 100
-      ? `${pct}% used`
-      : `${data.usedTokens.toLocaleString()} / ${data.limitTokens.toLocaleString()} (${pct}%)`,
+    text:
+      data.limitTokens === 100
+        ? `${pct}% used`
+        : `${data.usedTokens.toLocaleString()} / ${data.limitTokens.toLocaleString()} (${pct}%)`,
     style_class: 'ai-usage-usage-text',
     x_expand: true,
   });
@@ -144,7 +144,8 @@ export const UsagePopover = GObject.registerClass(
       this._refreshButton.connect('clicked', () => {
         if (!this._manager.isFetching) {
           this._setRefreshButtonSensitive(false);
-          this._manager.fetchAll()
+          this._manager
+            .fetchAll()
             .then(() => this._setRefreshButtonSensitive(true))
             .catch(() => this._setRefreshButtonSensitive(true));
         }

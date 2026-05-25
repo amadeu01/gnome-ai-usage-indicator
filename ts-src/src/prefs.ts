@@ -18,9 +18,17 @@ export default class AiUsagePreferences extends ExtensionPreferences {
     page.add(providersGroup);
 
     const providers = [
-      { id: PROVIDER_IDS.CLAUDE_CODE, label: 'Claude Code', subtitle: 'Reads ~/.claude/statusline-usage-cache.json' },
+      {
+        id: PROVIDER_IDS.CLAUDE_CODE,
+        label: 'Claude Code',
+        subtitle: 'Reads ~/.claude/statusline-usage-cache.json',
+      },
       { id: PROVIDER_IDS.CODEX, label: 'Codex CLI', subtitle: 'Reads ~/.codex/ usage files' },
-      { id: PROVIDER_IDS.ANTHROPIC_API, label: 'Anthropic API', subtitle: 'Fetches from api.anthropic.com' },
+      {
+        id: PROVIDER_IDS.ANTHROPIC_API,
+        label: 'Anthropic API',
+        subtitle: 'Fetches from api.anthropic.com',
+      },
     ];
 
     for (const provider of providers) {
@@ -37,7 +45,10 @@ export default class AiUsagePreferences extends ExtensionPreferences {
         if (row.active && !current.includes(provider.id)) {
           settings.set_strv('enabled-providers', [...current, provider.id]);
         } else if (!row.active && current.includes(provider.id)) {
-          settings.set_strv('enabled-providers', current.filter((id: string) => id !== provider.id));
+          settings.set_strv(
+            'enabled-providers',
+            current.filter((id: string) => id !== provider.id)
+          );
         }
       });
 

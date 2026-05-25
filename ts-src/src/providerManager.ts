@@ -39,18 +39,20 @@ function rustDataToProviderData(item: any): ProviderData {
 }
 
 function offlineProviders(): ProviderData[] {
-  return [{
-    id: 'daemon-offline',
-    name: 'AI Usage Daemon',
-    usedTokens: 0,
-    limitTokens: 100,
-    usedCredits: null,
-    limitCredits: null,
-    resetAt: null,
-    error: 'Daemon offline',
-    windowLabel: null,
-    paceInfo: null,
-  }];
+  return [
+    {
+      id: 'daemon-offline',
+      name: 'AI Usage Daemon',
+      usedTokens: 0,
+      limitTokens: 100,
+      usedCredits: null,
+      limitCredits: null,
+      resetAt: null,
+      error: 'Daemon offline',
+      windowLabel: null,
+      paceInfo: null,
+    },
+  ];
 }
 
 export const ProviderManager = GObject.registerClass(
@@ -106,12 +108,12 @@ export const ProviderManager = GObject.registerClass(
               this._data = parsed.map(rustDataToProviderData);
               this._lastFetch = new Date();
               this.emit('data-updated');
-            } catch (_e) {
+            } catch {
               // ignore malformed signal
             }
           }
         });
-      } catch (_e) {
+      } catch {
         this._proxy = null;
       }
     }
@@ -145,12 +147,12 @@ export const ProviderManager = GObject.registerClass(
                   const reply = this._proxy!.call_finish(asyncResult);
                   const json = reply.get_child_value(0).get_string()[0];
                   resolve(json);
-                } catch (_e) {
+                } catch {
                   resolve(null);
                 }
               }
             );
-          } catch (_e) {
+          } catch {
             resolve(null);
           }
         });
