@@ -162,7 +162,7 @@ pub async fn fetch_anthropic_subscription() -> Vec<ProviderData> {
     }
 
     if let Some(ref extra) = usage_data.extra_usage {
-        if extra.is_enabled {
+        if extra.is_enabled && extra.used_credits.unwrap_or(0.0) > 0.0 {
             results.push(ProviderData {
                 id: "anthropic-sub-extra".to_string(),
                 name: "Anthropic Subscription".to_string(),
@@ -174,6 +174,7 @@ pub async fn fetch_anthropic_subscription() -> Vec<ProviderData> {
             });
         }
     }
+
 
     if results.is_empty() {
         results.push(super::error_entry(
