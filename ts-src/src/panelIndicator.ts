@@ -17,10 +17,11 @@ const PROVIDER_COLORS: Record<string, string> = {
 };
 
 function providerDot(color: string): St.Widget {
-  return new St.Widget({
+  const dot = new St.Widget({
     style_class: 'ai-usage-provider-dot',
-    style: `background-color: ${color};`,
   });
+  (dot as any).style = `background-color: ${color};`;
+  return dot;
 }
 
 export const PanelIndicator = GObject.registerClass(
