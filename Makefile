@@ -12,6 +12,7 @@
 # Typical workflow:
 #   make install        — build + install both, start daemon service
 #   make run            — run daemon in foreground (dev)
+#   make refresh        — trigger immediate daemon data refresh via DBus
 #   make debug          — run daemon with RUST_LOG=debug (dev)
 #   make ext-reload     — reinstall + restart extension (dev)
 #   make stop           — stop daemon
@@ -32,7 +33,7 @@ EXT_INSTALL = $(HOME)/.local/share/gnome-shell/extensions/$(EXT_UUID)
 
 .PHONY: build build-daemon build-ext \
         install install-daemon install-ext \
-        run debug stop \
+        run debug refresh stop \
         uninstall uninstall-daemon uninstall-ext \
         ext-reload typecheck \
         clean clean-daemon clean-ext \
@@ -103,6 +104,12 @@ ext-reload: install-ext
 	else \
 		echo "Wayland: log out and back in to reload extension"; \
 	fi
+
+## refresh       — trigger immediate daemon data refresh via DBus
+refresh:
+	busctl --user call io.github.amadeu01.AiUsageIndicator /io/github/amadeu01/AiUsageIndicator io.github.amadeu01.AiUsageIndicator Refresh
+	@echo "Refresh triggered"
+
 
 # ── Stop ─────────────────────────────────────────────────────────
 
