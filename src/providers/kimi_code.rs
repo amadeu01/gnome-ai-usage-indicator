@@ -1,7 +1,7 @@
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use chrono::Utc;
 use serde::Deserialize;
-use serde_json::Value;
+use serde_json::{json, Value};
 use std::path::PathBuf;
 use super::ProviderData;
 use crate::config::home_dir;
@@ -52,7 +52,35 @@ fn count_sessions() -> usize {
         .unwrap_or(0)
 }
 
-pub fn fetch_kimi_code() -> ProviderData {
+/// Probe quota status with a minimal inference request (max_tokens=1).
+/// Returns Some(100.0) if quota exhausted, None if probe inconclusive.
+async fn probe_quota(token: &str) -> Option<f32> {
+    let client = reqwest::Client::new();
+    let body = json!({
+        "model": "kimi-for-coding",
+        "messages": [{"role": "user", "content": "1"}],
+        "max_tokens": 1
+    });
+
+    let resp = client
+        .post("https://api.kimi.com/coding/v1/chat/completions")
+        .header("Authorization", format!("Bearer {token}"))
+        .header("Content-Type", "application/json")
+        .json(&body)
+        .send()
+        .await
+        .ok()?;
+
+    if resp.status().as_u16() == 403 {
+        let text = resp.text().await.ok()?;
+        if text.contains("access_terminated_error") {
+            return Some(100.0);
+        }
+    }
+    None
+}
+
+pub async fn fetch_kimi_code() -> ProviderData {
     let path = credentials_path();
     if !path.exists() {
         return super::error_entry("kimi-code", "Kimi Code", "Not authenticated — no credentials file");
@@ -78,15 +106,22 @@ pub fn fetch_kimi_code() -> ProviderData {
         return super::error_entry("kimi-code", "Kimi Code", "Token expired — run `kimi login` to refresh");
     }
 
+    // Check if quota is exhausted via lightweight probe
+    let utilization = probe_quota(&creds.access_token).await.unwrap_or(0.0);
+
     let model = read_model().unwrap_or_else(|| "unknown".to_string());
     let session_count = count_sessions();
-    let meta = format!("Model: {} · {} sessions", model, session_count);
+    let meta = if utilization > 0.0 {
+        None
+    } else {
+        Some(format!("Model: {} · {} sessions", model, session_count))
+    };
 
     ProviderData {
         id: "kimi-code".to_string(),
         name: "Kimi Code".to_string(),
-        utilization: 0.0,
-        meta: Some(meta),
+        utilization,
+        meta,
         ..Default::default()
     }
 }

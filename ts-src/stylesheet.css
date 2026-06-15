@@ -9,6 +9,22 @@
   color: #e74c3c;
 }
 
+/* Panel container */
+.ai-usage-panel-box {
+  spacing: 3px;
+}
+
+/* Per-provider colored dots */
+.ai-usage-dots-box {
+  spacing: 2px;
+}
+
+.ai-usage-provider-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+}
+
 /* Popover container */
 .ai-usage-header {
   padding: 8px 12px 4px 12px;

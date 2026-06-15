@@ -91,7 +91,7 @@ pub async fn fetch_all(config: &Config) -> Vec<ProviderData> {
             if fetch_anthropic_sub { Some(anthropic_subscription::fetch_anthropic_subscription().await) } else { None }
         },
         async {
-            if fetch_kimi { Some(kimi_code::fetch_kimi_code()) } else { None }
+            if fetch_kimi { Some(kimi_code::fetch_kimi_code().await) } else { None }
         },
         async {
             if fetch_deepseek { Some(deepseek::fetch_deepseek(&config.deepseek_api_key).await) } else { None }
