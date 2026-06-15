@@ -31,6 +31,7 @@ impl AiUsageIndicatorInterface {
             "pollIntervalSecs": cfg.poll_interval_secs,
             "ollamaHost": cfg.ollama_host,
             "anthropicApiKeyPresent": !cfg.anthropic_api_key.is_empty(),
+            "deepseekApiKeyPresent": !cfg.deepseek_api_key.is_empty(),
         });
         serde_json::to_string(&sanitized).unwrap_or_else(|_| "{}".to_string())
     }

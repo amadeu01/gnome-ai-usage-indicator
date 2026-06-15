@@ -44,7 +44,7 @@ build: build-daemon build-ext
 
 ## build-daemon  — compile Rust daemon (release binary)
 build-daemon:
-	cargo build --release
+	cargo +nightly build --release
 
 ## build-ext     — typecheck + compile TypeScript extension to dist/
 build-ext:

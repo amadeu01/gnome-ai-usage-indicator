@@ -20,4 +20,7 @@ export const PROVIDER_IDS = {
   CLAUDE_CODE: 'claude-code',
   CODEX: 'codex',
   ANTHROPIC_API: 'anthropic-api',
+  ANTHROPIC_SUBSCRIPTION: 'anthropic-subscription',
+  KIMI_CODE: 'kimi-code',
+  DEEPSEEK: 'deepseek',
 } as const;

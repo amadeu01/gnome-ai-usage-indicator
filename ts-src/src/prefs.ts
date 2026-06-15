@@ -29,6 +29,21 @@ export default class AiUsagePreferences extends ExtensionPreferences {
         label: 'Anthropic API',
         subtitle: 'Fetches from api.anthropic.com',
       },
+      {
+        id: PROVIDER_IDS.ANTHROPIC_SUBSCRIPTION,
+        label: 'Anthropic Subscription',
+        subtitle: 'Fetches from api.anthropic.com (OAuth, auto-discovered key)',
+      },
+      {
+        id: PROVIDER_IDS.KIMI_CODE,
+        label: 'Kimi Code',
+        subtitle: 'Reads ~/.kimi/credentials/kimi-code.json',
+      },
+      {
+        id: PROVIDER_IDS.DEEPSEEK,
+        label: 'DeepSeek',
+        subtitle: 'Fetches from api.deepseek.com (API key in config)',
+      },
     ];
 
     for (const provider of providers) {
