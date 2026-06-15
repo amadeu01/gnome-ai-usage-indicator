@@ -29,6 +29,8 @@ export const PanelIndicator = GObject.registerClass(
 
       this._popoverContent = new (UsagePopover as any)(this._popoverSection, manager);
 
+      this._popoverContent.buildUI(this._popoverSection.box as St.BoxLayout);
+
       this._openStateId = this.menu.connect('open-state-changed', (_menu: any, open: boolean) => {
         if (open) {
           manager.fetchAll().catch(() => {});

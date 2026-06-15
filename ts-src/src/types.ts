@@ -6,6 +6,7 @@ export interface PaceInfo {
 export interface ProviderData {
   id: string;
   name: string;
+  utilization: number;
   usedTokens: number;
   limitTokens: number;
   usedCredits: number | null;
@@ -14,6 +15,7 @@ export interface ProviderData {
   error: string | null;
   windowLabel: string | null;
   paceInfo: PaceInfo | null;
+  meta: string | null;
 }
 
 export const PROVIDER_IDS = {
