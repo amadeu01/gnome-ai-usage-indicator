@@ -23,6 +23,7 @@ BINARY      = ai-usage-indicator
 INSTALL_BIN = $(HOME)/.local/bin/$(BINARY)
 SERVICE_DIR = $(HOME)/.config/systemd/user
 SERVICE_FILE = $(BINARY).service
+PNPM        = npm
 
 EXT_UUID    = gnome-ai-usage-indicator@amadeu01.github.io
 EXT_SRC     = ts-src
@@ -48,11 +49,11 @@ build-daemon:
 
 ## build-ext     — typecheck + compile TypeScript extension to dist/
 build-ext:
-	pnpm --dir $(EXT_SRC) run build
+	cd $(EXT_SRC) && $(PNPM) run build
 
 ## typecheck     — type-check extension without emitting files
 typecheck:
-	pnpm --dir $(EXT_SRC) run typecheck
+	cd $(EXT_SRC) && $(PNPM) run typecheck
 
 # ── Install ──────────────────────────────────────────────────────
 
@@ -141,7 +142,7 @@ clean-daemon:
 
 ## clean-ext     — remove TypeScript build output (ts-src/dist/)
 clean-ext:
-	pnpm --dir $(EXT_SRC) run clean
+	cd $(EXT_SRC) && $(PNPM) run clean
 
 # ── Help ─────────────────────────────────────────────────────────
 
