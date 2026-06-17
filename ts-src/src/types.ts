@@ -25,4 +25,5 @@ export const PROVIDER_IDS = {
   ANTHROPIC_SUBSCRIPTION: 'anthropic-subscription',
   KIMI_CODE: 'kimi-code',
   DEEPSEEK: 'deepseek',
+  GITHUB_COPILOT: 'github-copilot',
 } as const;

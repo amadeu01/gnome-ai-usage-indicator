@@ -1,7 +1,7 @@
 import St from 'gi://St';
 import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
-import { PopupBaseMenuItem } from 'resource:///org/gnome/shell/ui/popupMenu.js';
+import { PopupMenuSection } from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import { Button } from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import { buildProviderTile } from './usagePopover.js';
 import { ProviderData } from './types.js';
@@ -14,6 +14,7 @@ const PROVIDER_COLORS: Record<string, string> = {
   'Claude Code': '#d4a574',
   Codex: '#4fc3f7',
   'Anthropic API': '#d4a574',
+  'GitHub Copilot': '#8957e5',
 };
 
 function providerDot(color: string): St.Widget {
@@ -63,17 +64,18 @@ export const PanelIndicator = GObject.registerClass(
     }
 
     private _rebuildMenu(manager: ProviderManagerType): void {
-      // Remove old tile items
+      // Remove old items
       (this.menu as any).removeAll();
+
+      const section = new PopupMenuSection();
+      this.menu.addMenuItem(section);
 
       const data = manager.data;
       const sorted = [...data].sort((a: ProviderData, b: ProviderData) => a.name.localeCompare(b.name));
 
       for (const d of sorted) {
         const tile = buildProviderTile(d);
-        const item = new PopupBaseMenuItem({ activate: false });
-        item.actor.add_child(tile as any);
-        this.menu.addMenuItem(item);
+        section.box.add_child(tile as any);
       }
 
       // Footer
@@ -84,10 +86,8 @@ export const PanelIndicator = GObject.registerClass(
       else if (diffSecs < 60) footerText = 'Updated just now';
       else footerText = `Updated ${Math.floor(diffSecs / 60)} min ago`;
 
-      const footerItem = new PopupBaseMenuItem({ activate: false });
       const footerLabel = new St.Label({ text: footerText, style_class: 'ai-usage-footer', x_expand: true });
-      footerItem.actor.add_child(footerLabel);
-      this.menu.addMenuItem(footerItem);
+      section.box.add_child(footerLabel);
     }
 
     private _updateState(data: ProviderData[]): void {

@@ -14,6 +14,8 @@ pub struct Config {
     pub anthropic_api_key: String,
     #[serde(default)]
     pub deepseek_api_key: String,
+    #[serde(default)]
+    pub github_token: String,
 }
 
 fn default_poll_interval() -> u64 {
@@ -35,6 +37,7 @@ impl Default for Config {
             ollama_host: default_ollama_host(),
             anthropic_api_key: String::new(),
             deepseek_api_key: String::new(),
+            github_token: String::new(),
         }
     }
 }
