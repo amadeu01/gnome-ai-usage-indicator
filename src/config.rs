@@ -16,6 +16,8 @@ pub struct Config {
     pub deepseek_api_key: String,
     #[serde(default)]
     pub github_token: String,
+    #[serde(default)]
+    pub copilot_org: String,
 }
 
 fn default_poll_interval() -> u64 {
@@ -38,6 +40,7 @@ impl Default for Config {
             anthropic_api_key: String::new(),
             deepseek_api_key: String::new(),
             github_token: String::new(),
+            copilot_org: String::new(),
         }
     }
 }

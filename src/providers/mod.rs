@@ -99,7 +99,7 @@ pub async fn fetch_all(config: &Config) -> Vec<ProviderData> {
             if fetch_deepseek { Some(deepseek::fetch_deepseek(&config.deepseek_api_key).await) } else { None }
         },
         async {
-            if fetch_github { Some(github_copilot::fetch_github_copilot(&config.github_token).await) } else { None }
+            if fetch_github { Some(github_copilot::fetch_github_copilot(&config.github_token, &config.copilot_org).await) } else { None }
         },
     );
 

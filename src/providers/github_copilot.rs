@@ -1,41 +1,67 @@
-use chrono::{DateTime, Utc};
-use serde::Deserialize;
 use super::ProviderData;
 
-#[derive(Debug, Deserialize)]
-struct CopilotUsage {
-    /// Percentage of monthly allowance used (0–100)
-    #[serde(alias = "usage_percentage", alias = "percentUsed")]
-    percentage: Option<f64>,
-    /// ISO-8601 reset date string
-    #[serde(alias = "reset_date", alias = "resetDate")]
-    reset_date: Option<String>,
-    /// Some responses include a human-readable summary
-    #[serde(alias = "summary")]
-    summary: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct CopilotResponse {
-    /// Direct fields on the response
-    #[serde(flatten)]
-    usage: CopilotUsage,
-    /// Nested: some endpoints wrap in a "seat" or "data" object
-    #[serde(alias = "seat", alias = "data")]
-    seat: Option<CopilotUsage>,
-}
-
-pub async fn fetch_github_copilot(token: &str) -> ProviderData {
-    if token.is_empty() {
-        return super::error_entry("github-copilot", "GitHub Copilot", "No GitHub token configured");
+/// GitHub Copilot Business usage via org-level API.
+///
+/// Requires a fine-grained PAT with:
+///   - Resource owner: the Copilot org (e.g. SpexAI)
+///   - "GitHub Copilot Business" permission → Read
+///   - "Members" permission → Read
+///
+/// Endpoint: `GET /orgs/{org}/members/{username}/copilot`
+pub async fn fetch_github_copilot(config_token: &str, copilot_org: &str) -> ProviderData {
+    if copilot_org.is_empty() {
+        return super::error_entry(
+            "github-copilot",
+            "GitHub Copilot",
+            "Set copilot_org in config",
+        );
     }
 
+    let token = if !config_token.is_empty() {
+        config_token.to_string()
+    } else {
+        match tokio::process::Command::new("gh")
+            .args(["auth", "token"])
+            .output()
+            .await
+        {
+            Ok(output) if output.status.success() => {
+                let t = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                if t.is_empty() {
+                    return super::error_entry(
+                        "github-copilot",
+                        "GitHub Copilot",
+                        "No GitHub token",
+                    );
+                }
+                t
+            }
+            _ => {
+                return super::error_entry(
+                    "github-copilot",
+                    "GitHub Copilot",
+                    "No GitHub token",
+                );
+            }
+        }
+    };
+
+    // Resolve username from /user
     let client = reqwest::Client::new();
+    let username = match resolve_username(&client, &token).await {
+        Some(u) => u,
+        None => {
+            return super::error_entry(
+                "github-copilot",
+                "GitHub Copilot",
+                "Could not resolve GitHub username",
+            );
+        }
+    };
 
-    // Try documented org-level endpoint first; also works for personal accounts
-    // on some GitHub deployments via the user context.
+    let url = format!("https://api.github.com/orgs/{copilot_org}/members/{username}/copilot");
     let result = client
-        .get("https://api.github.com/copilot/usage")
+        .get(&url)
         .header("Authorization", format!("Bearer {token}"))
         .header("Accept", "application/vnd.github+json")
         .header("User-Agent", "ai-usage-indicator")
@@ -43,78 +69,80 @@ pub async fn fetch_github_copilot(token: &str) -> ProviderData {
         .await;
 
     match result {
-        Err(e) => super::error_entry("github-copilot", "GitHub Copilot", &format!("Network error: {e}")),
-        Ok(resp) => {
-            let status = resp.status();
-            if status == 404 {
-                // Fall back to user-level endpoint
-                return fetch_copilot_user(&client, token).await;
+        Ok(resp) if resp.status().is_success() => {
+            match resp.json::<serde_json::Value>().await {
+                Ok(json) => parse_member_usage(&json, copilot_org),
+                Err(_) => super::error_entry(
+                    "github-copilot",
+                    "GitHub Copilot",
+                    "Parse error",
+                ),
             }
-            if !status.is_success() {
+        }
+        Ok(resp) => {
+            let status = resp.status().as_u16();
+            let msg = if status == 403 {
+                "Token lacks Copilot Business + Members org permissions"
+            } else if status == 404 {
+                "Org or member not found — check copilot_org"
+            } else {
                 return super::error_entry(
                     "github-copilot",
                     "GitHub Copilot",
-                    &format!("API error ({})", status.as_u16()),
+                    &format!("HTTP {status}"),
                 );
-            }
-            parse_copilot_response(resp).await
-        }
-    }
-}
-
-async fn fetch_copilot_user(client: &reqwest::Client, token: &str) -> ProviderData {
-    let result = client
-        .get("https://api.github.com/user/copilot/usage")
-        .header("Authorization", format!("Bearer {token}"))
-        .header("Accept", "application/vnd.github+json")
-        .header("User-Agent", "ai-usage-indicator")
-        .send()
-        .await;
-
-    match result {
-        Err(e) => super::error_entry("github-copilot", "GitHub Copilot", &format!("Network error: {e}")),
-        Ok(resp) => {
-            let status = resp.status();
-            if !status.is_success() {
-                return super::error_entry(
-                    "github-copilot",
-                    "GitHub Copilot",
-                    &format!("API error ({})", status.as_u16()),
-                );
-            }
-            parse_copilot_response(resp).await
-        }
-    }
-}
-
-async fn parse_copilot_response(resp: reqwest::Response) -> ProviderData {
-    match resp.json::<CopilotResponse>().await {
-        Err(e) => super::error_entry("github-copilot", "GitHub Copilot", &format!("Parse error: {e}")),
-        Ok(data) => {
-            let usage = data.seat.unwrap_or(data.usage);
-            let pct = usage.percentage.unwrap_or(0.0);
-            let utilization = pct as f32;
-
-            let reset_at: Option<DateTime<Utc>> = usage
-                .reset_date
-                .as_deref()
-                .and_then(|s| s.parse().ok());
-
-            let meta = match (usage.summary.as_deref(), &usage.reset_date) {
-                (Some(summary), _) => Some(summary.to_string()),
-                (None, Some(date)) => Some(format!("Resets {}", date)),
-                (None, None) if utilization > 0.0 => Some(format!("{:.0}% used", pct)),
-                _ => None,
             };
-
-            ProviderData {
-                id: "github-copilot".to_string(),
-                name: "GitHub Copilot".to_string(),
-                utilization,
-                reset_at,
-                meta,
-                ..Default::default()
-            }
+            super::error_entry("github-copilot", "GitHub Copilot", msg)
         }
+        Err(e) => super::error_entry(
+            "github-copilot",
+            "GitHub Copilot",
+            &format!("Network error: {e}"),
+        ),
+    }
+}
+
+async fn resolve_username(client: &reqwest::Client, token: &str) -> Option<String> {
+    let result = client
+        .get("https://api.github.com/user")
+        .header("Authorization", format!("Bearer {token}"))
+        .header("Accept", "application/vnd.github+json")
+        .header("User-Agent", "ai-usage-indicator")
+        .send()
+        .await
+        .ok()?;
+
+    let user: serde_json::Value = result.json().await.ok()?;
+    user.get("login")?.as_str().map(String::from)
+}
+
+fn parse_member_usage(json: &serde_json::Value, org: &str) -> ProviderData {
+    // Response shape (from GET /orgs/{org}/members/{username}/copilot):
+    // { "seat_created_at": "...", "plan_type": "...", "usage": { ... } }
+    // or: { "usage_percentage": N, "reset_date": "..." }
+    let pct = json
+        .get("usage_percentage")
+        .or_else(|| json.get("usage").and_then(|u| u.get("percentage")))
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.0)
+        .clamp(0.0, 100.0);
+
+    let reset_date: Option<String> = json
+        .get("reset_date")
+        .or_else(|| json.get("usage").and_then(|u| u.get("reset_date")))
+        .and_then(|v| v.as_str())
+        .map(String::from);
+
+    ProviderData {
+        id: "github-copilot".to_string(),
+        name: "GitHub Copilot".to_string(),
+        utilization: pct as f32,
+        reset_at: reset_date.as_deref().and_then(|s| s.parse().ok()),
+        meta: if pct > 0.0 {
+            Some(format!("{:.0}% used — org: {org}", pct))
+        } else {
+            None
+        },
+        ..Default::default()
     }
 }
