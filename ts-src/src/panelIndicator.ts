@@ -1,9 +1,9 @@
 import St from 'gi://St';
 import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
+import { PopupBaseMenuItem } from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import { Button } from 'resource:///org/gnome/shell/ui/panelMenu.js';
-import { PopupMenuSection } from 'resource:///org/gnome/shell/ui/popupMenu.js';
-import { UsagePopover } from './usagePopover.js';
+import { buildProviderTile } from './usagePopover.js';
 import { ProviderData } from './types.js';
 import type { ProviderManagerType } from './providerManager.js';
 
@@ -29,8 +29,6 @@ export const PanelIndicator = GObject.registerClass(
   class PanelIndicator extends Button {
     private _icon: St.Icon;
     private _dotsBox: St.BoxLayout;
-    private _popoverSection: any;
-    private _popoverContent: InstanceType<typeof UsagePopover> | null = null;
     private _openStateId: number = 0;
 
     constructor(manager: ProviderManagerType, extensionPath: string) {
@@ -49,13 +47,9 @@ export const PanelIndicator = GObject.registerClass(
 
       this.add_child(container);
 
-      this._popoverSection = new PopupMenuSection();
-      this.menu.addMenuItem(this._popoverSection);
+      // Rebuild menu content on data change
 
-      this._popoverContent = new (UsagePopover as any)(manager);
-
-      this._popoverContent.buildUI(this._popoverSection.box as St.BoxLayout);
-
+      // Fetch data when menu opens
       this._openStateId = this.menu.connect('open-state-changed', (_menu: any, open: boolean) => {
         if (open) {
           manager.fetchAll().catch(() => {});
@@ -64,7 +58,36 @@ export const PanelIndicator = GObject.registerClass(
 
       manager.connect('data-updated', () => {
         this._updateState(manager.data);
+        this._rebuildMenu(manager);
       });
+    }
+
+    private _rebuildMenu(manager: ProviderManagerType): void {
+      // Remove old tile items
+      (this.menu as any).removeAll();
+
+      const data = manager.data;
+      const sorted = [...data].sort((a: ProviderData, b: ProviderData) => a.name.localeCompare(b.name));
+
+      for (const d of sorted) {
+        const tile = buildProviderTile(d);
+        const item = new PopupBaseMenuItem({ activate: false });
+        item.actor.add_child(tile as any);
+        this.menu.addMenuItem(item);
+      }
+
+      // Footer
+      const lastFetch = manager.lastFetch;
+      const diffSecs = lastFetch ? Math.floor((Date.now() - lastFetch.getTime()) / 1000) : -1;
+      let footerText: string;
+      if (diffSecs < 0) footerText = 'Never updated';
+      else if (diffSecs < 60) footerText = 'Updated just now';
+      else footerText = `Updated ${Math.floor(diffSecs / 60)} min ago`;
+
+      const footerItem = new PopupBaseMenuItem({ activate: false });
+      const footerLabel = new St.Label({ text: footerText, style_class: 'ai-usage-footer', x_expand: true });
+      footerItem.actor.add_child(footerLabel);
+      this.menu.addMenuItem(footerItem);
     }
 
     private _updateState(data: ProviderData[]): void {
@@ -76,7 +99,6 @@ export const PanelIndicator = GObject.registerClass(
 
       let maxPct = 0;
       for (const d of data) {
-        if (d.error) continue;
         const pct = d.utilization > 0 ? Math.round(d.utilization) : 0;
         maxPct = Math.max(maxPct, pct);
       }
@@ -92,7 +114,7 @@ export const PanelIndicator = GObject.registerClass(
 
       const seen = new Set<string>();
       for (const d of data) {
-        if (d.error || seen.has(d.name)) continue;
+        if (seen.has(d.name)) continue;
         seen.add(d.name);
 
         const color = PROVIDER_COLORS[d.name] || '#888888';
@@ -104,10 +126,6 @@ export const PanelIndicator = GObject.registerClass(
       if (this._openStateId) {
         this.menu.disconnect(this._openStateId);
         this._openStateId = 0;
-      }
-      if (this._popoverContent) {
-        (this._popoverContent as any).destroy();
-        this._popoverContent = null;
       }
       super.destroy();
     }

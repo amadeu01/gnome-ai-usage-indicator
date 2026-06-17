@@ -33,7 +33,7 @@ EXT_INSTALL = $(HOME)/.local/share/gnome-shell/extensions/$(EXT_UUID)
 
 .PHONY: build build-daemon build-ext \
         install install-daemon install-ext \
-        run debug refresh stop \
+        run debug refresh status stop \
         uninstall uninstall-daemon uninstall-ext \
         ext-reload typecheck \
         clean clean-daemon clean-ext \
@@ -109,6 +109,10 @@ ext-reload: install-ext
 refresh:
 	busctl --user call io.github.amadeu01.AiUsageIndicator /io/github/amadeu01/AiUsageIndicator io.github.amadeu01.AiUsageIndicator Refresh
 	@echo "Refresh triggered"
+
+## status        — show current provider data from the daemon
+status:
+	busctl --user call io.github.amadeu01.AiUsageIndicator /io/github/amadeu01/AiUsageIndicator io.github.amadeu01.AiUsageIndicator GetProviderData
 
 
 # ── Stop ─────────────────────────────────────────────────────────

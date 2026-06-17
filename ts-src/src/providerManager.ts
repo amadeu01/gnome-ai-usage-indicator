@@ -27,7 +27,7 @@ function rustDataToProviderData(item: any): ProviderData {
   return {
     id: item.id ?? 'unknown',
     name: item.name ?? 'Unknown',
-    utilization: item.utilization ?? 0,
+    utilization: item.error ? 100 : (item.utilization ?? 0),
     usedTokens: Math.round(item.utilization ?? 0),
     limitTokens: 100,
     usedCredits: item.usedCredits ?? null,

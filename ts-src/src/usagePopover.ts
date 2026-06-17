@@ -33,7 +33,7 @@ function formatLastUpdated(lastFetch: Date | null): { text: string; stale: boole
   return { text: `Updated ${mins} min ago`, stale };
 }
 
-function buildProviderTile(data: ProviderData): St.BoxLayout {
+export function buildProviderTile(data: ProviderData): St.BoxLayout {
   const tile = new St.BoxLayout({
     style_class: 'ai-usage-tile',
     vertical: true,
@@ -73,12 +73,12 @@ function buildProviderTile(data: ProviderData): St.BoxLayout {
   tile.add_child(header);
 
   if (data.error) {
+    const errMsg = data.error.length > 40 ? data.error.slice(0, 40) + '\u2026' : data.error;
     const errorLabel = new St.Label({
-      text: data.error,
+      text: errMsg,
       style_class: 'ai-usage-error',
     });
     tile.add_child(errorLabel);
-    return tile;
   }
 
   // Progress bar — only when utilization > 0
@@ -138,12 +138,13 @@ export const UsagePopover = GObject.registerClass(
       this._refreshButton = button;
     }
 
-    buildUI(root: St.BoxLayout): void {
+    buildUI(root: any): void {
       // Tiles container
       this._tilesBox = new St.BoxLayout({
         style_class: 'ai-usage-tiles',
         vertical: true,
         x_expand: true,
+        y_expand: true,
       });
       this._tilesBox.set_name('tiles-box');
       root.add_child(this._tilesBox);
