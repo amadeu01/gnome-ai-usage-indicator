@@ -8,7 +8,7 @@ function formatResetCountdown(resetAt: Date | null): string {
   if (!resetAt) return '';
   const now = new Date();
   const diffMs = resetAt.getTime() - now.getTime();
-  if (diffMs <= 0) return 'Resetting…';
+  if (diffMs <= 0) return 'Resetting\u2026';
   const totalSecs = Math.floor(diffMs / 1000);
   const days = Math.floor(totalSecs / 86400);
   const hours = Math.floor((totalSecs % 86400) / 3600);
@@ -33,57 +33,72 @@ function formatLastUpdated(lastFetch: Date | null): { text: string; stale: boole
   return { text: `Updated ${mins} min ago`, stale };
 }
 
-function buildProviderTile(data: ProviderData): St.BoxLayout {
+export function buildProviderTile(data: ProviderData): St.BoxLayout {
   const tile = new St.BoxLayout({
     style_class: 'ai-usage-tile',
     vertical: true,
+    x_expand: true,
+    y_expand: true,
   });
 
   const header = new St.BoxLayout({ style_class: 'ai-usage-tile-header' });
 
   const nameLabel = new St.Label({
-    text: data.name,
+    text: data.windowLabel ? `${data.name} \u2014 ${data.windowLabel}` : data.name,
     style_class: 'ai-usage-provider-name',
     x_expand: true,
   });
   header.add_child(nameLabel);
 
+  // Prefer provider-reported utilization; fall back to token-based computation
   const pct =
-    data.limitTokens > 0
-      ? Math.min(100, Math.round((data.usedTokens / data.limitTokens) * 100))
-      : 0;
+    data.utilization > 0
+      ? Math.round(data.utilization)
+      : data.limitTokens > 0
+        ? Math.min(100, Math.round((data.usedTokens / data.limitTokens) * 100))
+        : 0;
 
-  const pctLabel = new St.Label({
-    text: `${pct}%`,
-    style_class: 'ai-usage-pct-label',
-  });
-  header.add_child(pctLabel);
+  // Show meta (e.g. balance) when usage is 0
+  if (pct === 0 && data.meta) {
+    const metaLabel = new St.Label({
+      text: data.meta,
+      style_class: 'ai-usage-pct-label',
+    });
+    header.add_child(metaLabel);
+  } else {
+    const pctLabel = new St.Label({
+      text: `${pct}%`,
+      style_class: 'ai-usage-pct-label',
+    });
+    header.add_child(pctLabel);
+  }
   tile.add_child(header);
 
   if (data.error) {
+    const errMsg = data.error.length > 40 ? data.error.slice(0, 40) + '\u2026' : data.error;
     const errorLabel = new St.Label({
-      text: data.error,
+      text: errMsg,
       style_class: 'ai-usage-error',
     });
     tile.add_child(errorLabel);
-    return tile;
   }
 
-  // Progress bar track
-  const barTrack = new St.Widget({ style_class: 'ai-usage-bar-track', x_expand: true });
-  const barFill = new St.Widget({
-    style_class: `ai-usage-bar-fill ${getUsageClass(pct)}`,
-    style: `width: ${pct}%;`,
-  });
-  barTrack.add_child(barFill);
-  tile.add_child(barTrack);
+  // Progress bar — only when utilization > 0
+  if (pct > 0) {
+    const barTrack = new St.Widget({ style_class: 'ai-usage-bar-track', x_expand: true });
+    const barFill = new St.Widget({
+      style_class: `ai-usage-bar-fill ${getUsageClass(pct)}`,
+      style: `width: ${pct}%;`,
+    });
+    barTrack.add_child(barFill);
+    tile.add_child(barTrack);
+  }
 
   const footer = new St.BoxLayout({ style_class: 'ai-usage-tile-footer' });
   const usageText = new St.Label({
-    text:
-      data.limitTokens === 100
-        ? `${pct}% used`
-        : `${data.usedTokens.toLocaleString()} / ${data.limitTokens.toLocaleString()} (${pct}%)`,
+    text: pct > 0
+      ? `${pct}% used`
+      : (data.meta ?? ''),
     style_class: 'ai-usage-usage-text',
     x_expand: true,
   });
@@ -105,71 +120,43 @@ function buildProviderTile(data: ProviderData): St.BoxLayout {
 export const UsagePopover = GObject.registerClass(
   { GTypeName: 'AiUsagePopover' },
   class UsagePopover extends GObject.Object {
-    private _section: any;
     private _manager: ProviderManagerType;
-    private _refreshButton: St.Button | null = null;
-    private _footerLabel: St.Label | null = null;
-    private _footerTimer: number = 0;
     private _managerId: number = 0;
     private _tilesBox: St.BoxLayout | null = null;
+    private _footerLabel: St.Label | null = null;
+    private _footerTimer: number = 0;
+    private _refreshButton: St.Button | null = null;
 
-    constructor(section: any, manager: ProviderManagerType) {
+    constructor(manager: ProviderManagerType) {
       super();
-      this._section = section;
       this._manager = manager;
-      this._managerId = manager.connect('data-updated', () => this._refresh());
-      this._buildLayout();
-      this._refresh();
+
+      this._managerId = manager.connect('data-updated', () => {
+        this._refresh();
+      });
     }
 
-    private _buildLayout(): void {
-      const root = this._section.box ?? this._section.actor;
+    setRefreshButton(button: St.Button): void {
+      this._refreshButton = button;
+    }
 
-      // Header
-      const header = new St.BoxLayout({ style_class: 'ai-usage-header' });
-
-      const title = new St.Label({
-        text: 'AI Usage',
-        style_class: 'ai-usage-title',
-        x_expand: true,
-      });
-      header.add_child(title);
-
-      this._refreshButton = new St.Button({
-        style_class: 'ai-usage-refresh-btn',
-        child: new St.Icon({
-          icon_name: 'view-refresh-symbolic',
-          icon_size: 16,
-        }),
-      });
-      this._refreshButton.connect('clicked', () => {
-        if (!this._manager.isFetching) {
-          this._setRefreshButtonSensitive(false);
-          this._manager
-            .fetchAll()
-            .then(() => this._setRefreshButtonSensitive(true))
-            .catch(() => this._setRefreshButtonSensitive(true));
-        }
-      });
-      header.add_child(this._refreshButton);
-
-      if (root) root.add_child(header);
-
+    buildUI(root: any): void {
       // Tiles container
       this._tilesBox = new St.BoxLayout({
         style_class: 'ai-usage-tiles',
         vertical: true,
         x_expand: true,
+        y_expand: true,
       });
       this._tilesBox.set_name('tiles-box');
-      if (root) root.add_child(this._tilesBox);
+      root.add_child(this._tilesBox);
 
       // Footer
       this._footerLabel = new St.Label({
         text: 'Never updated',
         style_class: 'ai-usage-footer',
       });
-      if (root) root.add_child(this._footerLabel);
+      root.add_child(this._footerLabel);
 
       // Update footer every 30s
       this._footerTimer = GLib.timeout_add_seconds(GLib.PRIORITY_LOW, 30, () => {
@@ -196,7 +183,7 @@ export const UsagePopover = GObject.registerClass(
       const data = this._manager.data;
       if (data.length === 0) {
         const empty = new St.Label({
-          text: 'No providers enabled — open Preferences',
+          text: 'No providers enabled \u2014 open Preferences',
           style_class: 'ai-usage-empty',
         });
         tilesBox.add_child(empty);
@@ -232,7 +219,7 @@ export const UsagePopover = GObject.registerClass(
       }
       this._tilesBox = null;
     }
-  }
+  },
 );
 
 export type UsagePopoverType = InstanceType<typeof UsagePopover>;

@@ -12,6 +12,12 @@ pub struct Config {
     pub ollama_host: String,
     #[serde(default)]
     pub anthropic_api_key: String,
+    #[serde(default)]
+    pub deepseek_api_key: String,
+    #[serde(default)]
+    pub github_token: String,
+    #[serde(default)]
+    pub copilot_org: String,
 }
 
 fn default_poll_interval() -> u64 {
@@ -25,7 +31,6 @@ fn default_enabled_providers() -> Vec<String> {
 fn default_ollama_host() -> String {
     "http://localhost:11434".to_string()
 }
-
 impl Default for Config {
     fn default() -> Self {
         Self {
@@ -33,6 +38,9 @@ impl Default for Config {
             enabled_providers: default_enabled_providers(),
             ollama_host: default_ollama_host(),
             anthropic_api_key: String::new(),
+            deepseek_api_key: String::new(),
+            github_token: String::new(),
+            copilot_org: String::new(),
         }
     }
 }

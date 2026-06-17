@@ -3,8 +3,12 @@ use serde::Serialize;
 use crate::config::Config;
 
 pub mod anthropic_api;
+pub mod anthropic_subscription;
 pub mod claude_code;
 pub mod codex;
+pub mod kimi_code;
+pub mod deepseek;
+pub mod github_copilot;
 pub mod ollama;
 
 #[derive(Debug, Clone, Serialize)]
@@ -58,14 +62,17 @@ pub fn error_entry(id: &str, name: &str, msg: &str) -> ProviderData {
         ..Default::default()
     }
 }
-
 pub async fn fetch_all(config: &Config) -> Vec<ProviderData> {
     let fetch_claude = config.enabled_providers.contains(&"claude-code".to_string());
     let fetch_ollama = config.enabled_providers.contains(&"ollama".to_string());
     let fetch_anthropic = config.enabled_providers.contains(&"anthropic-api".to_string());
     let fetch_codex = config.enabled_providers.contains(&"codex".to_string());
+    let fetch_anthropic_sub = config.enabled_providers.contains(&"anthropic-subscription".to_string());
+    let fetch_kimi = config.enabled_providers.contains(&"kimi-code".to_string());
+    let fetch_deepseek = config.enabled_providers.contains(&"deepseek".to_string());
+    let fetch_github = config.enabled_providers.contains(&"github-copilot".to_string());
 
-    let (claude_result, ollama_result, anthropic_result, codex_result) = tokio::join!(
+    let (claude_result, ollama_result, anthropic_result, codex_result, anthropic_sub_result, kimi_result, deepseek_result, github_result) = tokio::join!(
         async {
             if fetch_claude { Some(claude_code::fetch_claude_code().await) } else { None }
         },
@@ -82,6 +89,18 @@ pub async fn fetch_all(config: &Config) -> Vec<ProviderData> {
         async {
             if fetch_codex { Some(codex::fetch_codex()) } else { None }
         },
+        async {
+            if fetch_anthropic_sub { Some(anthropic_subscription::fetch_anthropic_subscription().await) } else { None }
+        },
+        async {
+            if fetch_kimi { Some(kimi_code::fetch_kimi_code().await) } else { None }
+        },
+        async {
+            if fetch_deepseek { Some(deepseek::fetch_deepseek(&config.deepseek_api_key).await) } else { None }
+        },
+        async {
+            if fetch_github { Some(github_copilot::fetch_github_copilot(&config.github_token, &config.copilot_org).await) } else { None }
+        },
     );
 
     let mut results = Vec::new();
@@ -89,5 +108,9 @@ pub async fn fetch_all(config: &Config) -> Vec<ProviderData> {
     if let Some(entry) = ollama_result { results.push(entry); }
     if let Some(entry) = anthropic_result { results.push(entry); }
     if let Some(entry) = codex_result { results.push(entry); }
+    if let Some(entries) = anthropic_sub_result { results.extend(entries); }
+    if let Some(entry) = kimi_result { results.push(entry); }
+    if let Some(entry) = deepseek_result { results.push(entry); }
+    if let Some(entry) = github_result { results.push(entry); }
     results
 }

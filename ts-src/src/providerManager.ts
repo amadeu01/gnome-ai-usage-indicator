@@ -27,6 +27,7 @@ function rustDataToProviderData(item: any): ProviderData {
   return {
     id: item.id ?? 'unknown',
     name: item.name ?? 'Unknown',
+    utilization: item.error ? 100 : (item.utilization ?? 0),
     usedTokens: Math.round(item.utilization ?? 0),
     limitTokens: 100,
     usedCredits: item.usedCredits ?? null,
@@ -35,14 +36,15 @@ function rustDataToProviderData(item: any): ProviderData {
     error: item.error ?? null,
     windowLabel: item.windowLabel ?? null,
     paceInfo: item.paceInfo ?? null,
+    meta: item.meta ?? null,
   };
 }
-
 function offlineProviders(): ProviderData[] {
   return [
     {
       id: 'daemon-offline',
       name: 'AI Usage Daemon',
+      utilization: 0,
       usedTokens: 0,
       limitTokens: 100,
       usedCredits: null,
@@ -51,6 +53,7 @@ function offlineProviders(): ProviderData[] {
       error: 'Daemon offline',
       windowLabel: null,
       paceInfo: null,
+      meta: null,
     },
   ];
 }

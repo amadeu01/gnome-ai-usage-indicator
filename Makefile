@@ -12,6 +12,7 @@
 # Typical workflow:
 #   make install        — build + install both, start daemon service
 #   make run            — run daemon in foreground (dev)
+#   make refresh        — trigger immediate daemon data refresh via DBus
 #   make debug          — run daemon with RUST_LOG=debug (dev)
 #   make ext-reload     — reinstall + restart extension (dev)
 #   make stop           — stop daemon
@@ -23,6 +24,7 @@ BINARY      = ai-usage-indicator
 INSTALL_BIN = $(HOME)/.local/bin/$(BINARY)
 SERVICE_DIR = $(HOME)/.config/systemd/user
 SERVICE_FILE = $(BINARY).service
+PNPM        = npm
 
 EXT_UUID    = gnome-ai-usage-indicator@amadeu01.github.io
 EXT_SRC     = ts-src
@@ -31,7 +33,7 @@ EXT_INSTALL = $(HOME)/.local/share/gnome-shell/extensions/$(EXT_UUID)
 
 .PHONY: build build-daemon build-ext \
         install install-daemon install-ext \
-        run debug stop \
+        run debug refresh status stop \
         uninstall uninstall-daemon uninstall-ext \
         ext-reload typecheck \
         clean clean-daemon clean-ext \
@@ -44,15 +46,15 @@ build: build-daemon build-ext
 
 ## build-daemon  — compile Rust daemon (release binary)
 build-daemon:
-	cargo build --release
+	cargo +nightly build --release
 
 ## build-ext     — typecheck + compile TypeScript extension to dist/
 build-ext:
-	pnpm --dir $(EXT_SRC) run build
+	cd $(EXT_SRC) && $(PNPM) run build
 
 ## typecheck     — type-check extension without emitting files
 typecheck:
-	pnpm --dir $(EXT_SRC) run typecheck
+	cd $(EXT_SRC) && $(PNPM) run typecheck
 
 # ── Install ──────────────────────────────────────────────────────
 
@@ -103,6 +105,16 @@ ext-reload: install-ext
 		echo "Wayland: log out and back in to reload extension"; \
 	fi
 
+## refresh       — trigger immediate daemon data refresh via DBus
+refresh:
+	busctl --user call io.github.amadeu01.AiUsageIndicator /io/github/amadeu01/AiUsageIndicator io.github.amadeu01.AiUsageIndicator Refresh
+	@echo "Refresh triggered"
+
+## status        — show current provider data from the daemon
+status:
+	busctl --user call io.github.amadeu01.AiUsageIndicator /io/github/amadeu01/AiUsageIndicator io.github.amadeu01.AiUsageIndicator GetProviderData
+
+
 # ── Stop ─────────────────────────────────────────────────────────
 
 ## stop          — stop daemon (systemd service + any direct process)
@@ -141,7 +153,7 @@ clean-daemon:
 
 ## clean-ext     — remove TypeScript build output (ts-src/dist/)
 clean-ext:
-	pnpm --dir $(EXT_SRC) run clean
+	cd $(EXT_SRC) && $(PNPM) run clean
 
 # ── Help ─────────────────────────────────────────────────────────
 

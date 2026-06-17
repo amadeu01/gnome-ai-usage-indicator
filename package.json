@@ -1,0 +1,36 @@
+{
+  "name": "ai-usage-indicator",
+  "version": "1.0.0",
+  "description": "GNOME Shell extension for AI usage monitoring — daemon + extension build system",
+  "private": true,
+  "scripts": {
+    "build": "npm run build:daemon && npm run build:ext",
+    "build:daemon": "cargo +nightly build --release",
+    "build:ext": "npm --prefix ts-src run build",
+
+    "typecheck": "npm --prefix ts-src run typecheck",
+
+    "install": "npm run install:daemon && npm run install:ext",
+    "install:daemon": "npm run build:daemon && install -Dm755 target/release/ai-usage-indicator ~/.local/bin/ai-usage-indicator && install -Dm644 ai-usage-indicator.service ~/.config/systemd/user/ai-usage-indicator.service && systemctl --user daemon-reload && systemctl --user enable --now ai-usage-indicator.service",
+    "install:ext": "npm run build:ext && mkdir -p ~/.local/share/gnome-shell/extensions/gnome-ai-usage-indicator@amadeu01.github.io && cp -r ts-src/dist/* ~/.local/share/gnome-shell/extensions/gnome-ai-usage-indicator@amadeu01.github.io/ && cp ts-src/metadata.json ~/.local/share/gnome-shell/extensions/gnome-ai-usage-indicator@amadeu01.github.io/ && cp ts-src/stylesheet.css ~/.local/share/gnome-shell/extensions/gnome-ai-usage-indicator@amadeu01.github.io/ && cp -r ts-src/schemas ~/.local/share/gnome-shell/extensions/gnome-ai-usage-indicator@amadeu01.github.io/ && cp -r ts-src/icons ~/.local/share/gnome-shell/extensions/gnome-ai-usage-indicator@amadeu01.github.io/ && glib-compile-schemas ~/.local/share/gnome-shell/extensions/gnome-ai-usage-indicator@amadeu01.github.io/schemas/",
+
+    "run": "npm run stop; cargo run",
+    "debug": "npm run stop; RUST_LOG=debug RUST_BACKTRACE=1 cargo run",
+    "ext:reload": "npm run install:ext && if [ -n \"$DISPLAY\" ]; then gnome-extensions disable gnome-ai-usage-indicator@amadeu01.github.io 2>/dev/null; gnome-extensions enable gnome-ai-usage-indicator@amadeu01.github.io 2>/dev/null; echo 'Extension reloaded'; else echo 'Wayland: log out and back in to reload extension'; fi",
+
+    "stop": "systemctl --user stop ai-usage-indicator.service 2>/dev/null; pkill -TERM -x ai-usage-indicator 2>/dev/null; echo 'Stopped ai-usage-indicator'",
+
+    "uninstall": "npm run uninstall:daemon && npm run uninstall:ext",
+    "uninstall:daemon": "npm run stop; systemctl --user disable ai-usage-indicator.service 2>/dev/null; rm -f ~/.local/bin/ai-usage-indicator; rm -f ~/.config/systemd/user/ai-usage-indicator.service; systemctl --user daemon-reload",
+    "uninstall:ext": "gnome-extensions disable gnome-ai-usage-indicator@amadeu01.github.io 2>/dev/null; rm -rf ~/.local/share/gnome-shell/extensions/gnome-ai-usage-indicator@amadeu01.github.io",
+
+    "clean": "npm run clean:daemon && npm run clean:ext",
+    "clean:daemon": "cargo clean",
+    "clean:ext": "npm --prefix ts-src run clean",
+
+    "format": "npm --prefix ts-src run format",
+    "format:check": "npm --prefix ts-src run format:check",
+    "lint": "npm --prefix ts-src run lint",
+    "lint:fix": "npm --prefix ts-src run lint:fix"
+  }
+}
