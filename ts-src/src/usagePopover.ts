@@ -37,6 +37,8 @@ export function buildProviderTile(data: ProviderData): St.BoxLayout {
   const tile = new St.BoxLayout({
     style_class: 'ai-usage-tile',
     vertical: true,
+    x_expand: true,
+    y_expand: true,
   });
 
   const header = new St.BoxLayout({ style_class: 'ai-usage-tile-header' });
